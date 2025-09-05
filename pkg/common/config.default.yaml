@@ -1,0 +1,318 @@
+clusterName: beta9
+debugMode: false
+prettyLogs: true
+database:
+  postgres:
+    host: postgresql
+    port: 5432
+    username: root
+    password: password
+    name: main
+    timezone: UTC
+    encryptionKey: sk_pKz38fK8v7lz01AneJI8MJnR70akmP2CtDNf1IufKcY=
+  redis:
+    mode: single
+    addrs:
+      - redis-master:6379
+    password:
+    enableTLS: false
+    insecureSkipVerify: false
+    dialTimeout: 3s
+storage:
+  mode: juicefs
+  fsName: beta9-fs
+  fsPath: /data
+  objectPath: /data/objects
+  juicefs:
+    redisURI: redis://juicefs-redis-master:6379/0
+    awsS3Bucket: http://localstack:4566/juicefs
+    awsAccessKey: test
+    awsSecretKey: test
+    blockSize: 4096
+    cacheSize: 0
+    prefetch: 1
+    bufferSize: 300
+  workspaceStorage:
+    baseMountPath: /workspace/data
+    defaultStorageMode: geese
+    defaultBucketPrefix: workspace
+    defaultAccessKey: test
+    defaultSecretKey: test
+    defaultEndpointUrl: http://localstack:4566
+    defaultRegion: us-east-1
+    alluxio:
+      debug: false
+    geese:
+      debug: false
+      fsyncOnClose: true
+      memoryLimit: 2048
+      maxFlushers: 64
+      maxParallelParts: 64
+      dirMode: 0777
+      fileMode: 0666
+      listType: 1
+      readAheadKB: 32768
+      readAheadLargeKB: 131072
+      fuseReadAheadKB: 32768
+      readAheadParallelKB: 4096
+      mountOptions: []
+      stagedWriteModeEnabled: true
+      stagedWritePath: /tmp/geesefs-staged-write
+      stagedWriteDebounce: 30s
+      cacheStreamingEnabled: false
+gateway:
+  host: beta9-gateway
+  invokeURLType: path
+  grpc:
+    externalHost: beta9-gateway
+    externalPort: 1993
+    tls: false
+    port: 1993
+    maxRecvMsgSize: 16
+    maxSendMsgSize: 16
+  http:
+    externalHost: localhost
+    externalPort: 1994
+    tls: false
+    port: 1994
+    enablePrettyLogs: true
+    cors:
+      allowOrigins: "*"
+      allowHeaders: "*"
+      allowMethods: "*"
+  shutdownTimeout: 180s
+  stubLimits:
+    cpu: 128000
+    memory: 32768
+    maxReplicas: 10
+    maxGpuCount: 2
+fileService:
+  enabled: true
+  endpointUrl: http://juicefs-s3-gateway.beta9.svc.cluster.local:9900
+  bucketName: beta9-fs
+  accessKey: test
+  secretKey: test-test-test
+  region:
+imageService:
+  localCacheEnabled: true
+  # 120 ns per byte is a rough estimate of the time it takes per byte to pull, unpack, and archive an image.
+  # In the worst case, we have seen 10gb images take 20 minutes. That is 1e+10 bytes taking 1200 seconds.
+  # That gives 1200 / 1e+10 = 120 ns per byte.
+  archiveNanosecondsPerByte: 120
+  registryStore: local
+  registryCredentialProvider: docker
+  buildContainerPoolSelector: build
+  pythonVersion: python3.10
+  registries:
+    docker:
+      username:
+      password:
+    s3:
+      primary:
+        bucketName: beta9-images
+        region: us-east-1
+        accessKey: test
+        secretKey: test
+        endpoint:
+      secondary:
+        bucketName: beta9-images-old
+        region: us-east-1
+        accessKey: test
+        secretKey: test
+        endpoint:
+  runner:
+    baseImageName: beta9-runner
+    baseImageRegistry: registry.localhost:5000
+    tags:
+      python3.8: py38-latest
+      python3.9: py39-latest
+      python3.10: py310-latest
+      python3.11: py311-latest
+      python3.12: py312-latest
+      micromamba3.8: micromamba3.8-latest
+      micromamba3.9: micromamba3.9-latest
+      micromamba3.10: micromamba3.10-latest
+      micromamba3.11: micromamba3.11-latest
+      micromamba3.12: micromamba3.12-latest
+    pythonStandalone:
+      versions:
+        python3.8: 3.8.20
+        python3.9: 3.9.20
+        python3.10: 3.10.15
+        python3.11: 3.11.10
+        python3.12: 3.12.7
+      installScriptTemplate: |
+        apt-get update -q && \
+        apt-get install -q -y build-essential curl git && \
+        curl -fsSL -o python.tgz 'https://github.com/indygreg/python-build-standalone/releases/download/20241002/cpython-{{.PythonVersion}}+20241002-{{.Architecture}}-{{.Vendor}}-{{.OS}}-gnu-install_only.tar.gz' && \
+        tar -xzf python.tgz -C /usr/local --strip-components 1 && \
+        rm -f python.tgz && \
+        rm -f /usr/bin/python && \
+        rm -f /usr/bin/python3 && \
+        ln -s /usr/local/bin/python3 /usr/bin/python && \
+        ln -s /usr/local/bin/python3 /usr/bin/python3 && \
+        rm -f /usr/bin/pip && \
+        rm -f /usr/bin/pip3 && \
+        ln -s /usr/local/bin/pip3 /usr/bin/pip && \
+        ln -s /usr/local/bin/pip3 /usr/bin/pip3
+worker:
+  pools:
+    default:
+      mode: local
+      priority: 1
+      jobSpec:
+        nodeSelector: {}
+      criuEnabled: true
+      checkpointPath: /data/checkpoints
+      poolSizing:
+        defaultWorkerCpu: 1000m
+        defaultWorkerGpuType: ""
+        defaultWorkerMemory: 1Gi
+        minFreeCpu: 1000m
+        minFreeGpu: 0
+        minFreeMemory: 1Gi
+    build:
+      mode: local
+      requiresPoolSelector: true
+      tmpSizeLimit: 50Gi
+      jobSpec:
+        nodeSelector: {}
+      poolSizing:
+        defaultWorkerCpu: 8000m
+        defaultWorkerGpuType: ""
+        defaultWorkerMemory: 32Gi
+        minFreeCpu: 8000m
+        minFreeGpu: 0
+        minFreeMemory: 32Gi
+        sharedMemoryLimitPct: 100%
+    # example gpu worker pool
+    # nvidia:
+    #   mode: local
+    #   gpuType: any
+    #   runtime: nvidia
+    #   jobSpec:
+    #     nodeSelector: {}
+    #   poolSizing:
+    #     defaultWorkerCpu:
+    #     defaultWorkerGpuType: ""
+    #     defaultWorkerMemory:
+    #     minFreeCpu:
+    #     minFreeGpu:
+    #     minFreeMemory:
+    #     sharedMemoryLimitPct: 100%
+  # global pool attributes
+  useHostResolvConf: true
+  hostNetwork: false
+  useGatewayServiceHostname: true
+  imageTag: latest
+  imageName: beta9-worker
+  imageRegistry: registry.localhost:5000
+  imagePullSecrets: []
+  namespace: beta9
+  serviceAccountName: default
+  tmpSizeLimit: 30Gi
+  # non-standard k8s job spec
+  imagePVCName: beta9-images
+  jobResourcesEnforced: false
+  containerResourceLimits:
+    cpuEnforced: true
+    memoryEnforced: false
+  defaultWorkerCPURequest: 2000
+  defaultWorkerMemoryRequest: 1024
+  terminationGracePeriod: 30
+  cleanupWorkerInterval: 1m
+  cleanupPendingWorkerAgeLimit: 10m
+  blobCacheEnabled: false
+  containerLogLinesPerHour: 6000
+  failover:
+    enabled: true
+    maxPendingWorkers: 10
+    maxSchedulingLatencyMs: 300000 # 5 minutes
+    minMachinesAvailable: 1 # minMachinesAvailable only applies to external pools
+  criu:
+    mode: nvidia
+    storage:
+      mode: local
+      mountPath: /data/checkpoints
+    cedana:
+      # Can be unix, tcp, vsock
+      protocol: unix
+      address: /run/cedana.sock
+      log_level: debug
+      # Connection details to your cedana endpoint
+      connection:
+        url: ""
+        auth_token: ""
+      checkpoint:
+        # Default dir to write/stream checkpoints to
+        dir: /data/checkpoints
+        # Can be one of: none, tar, lz4, gzip, zlib
+        compression: lz4
+        # Number of parallel streams for streaming checkpoints (0 = off)
+        # TODO: usable only in next release
+        # stream: 4
+      db:
+        # Use remote DB on the cedana endpoint
+        remote: true
+      profiling:
+        # Receive profiling info in the gRPC trailer
+        enabled: false
+        precision: auto
+      criu:
+        # Keep the job running after checkpoint
+        leave_running: true
+
+providers:
+  ec2:
+    accessKey:
+    secretkey:
+    region: us-east-1
+    # If you want workers nodes to land in your default vpc, you can omit subnetId
+    subnetId:
+    ami: ami-052c704a7f82c38b1
+tailscale:
+  controlUrl:
+  user: beta9
+  authKey:
+  enabled: false
+  debug: false
+  hostName: headscale.internal
+monitoring:
+  containerMetricsInterval: 3s
+  metricsCollector: prometheus
+  prometheus:
+    scrapeWorkers: true
+    port: 9090
+  telemetry:
+    enabled: false
+    endpoint: http://tempo.monitoring:4318
+    meterInterval: 3s
+    traceInterval: 3s
+    traceSampleRatio: 1.0
+  fluentbit:
+    events:
+      endpoint: http://fluent-bit.monitoring:9880
+      maxConns: 0
+      maxIdleConns: 30
+      idleConnTimeout: 10s
+      dialTimeout: 2s
+      keepAlive: 30s
+      # mapping:
+      # - name: container.lifecycle
+      #   tag: internal_api
+  openmeter:
+    serverUrl: ""
+    apiKey: ""
+abstractions:
+  bot:
+    systemPrompt: ""
+    stepIntervalS: 1
+    sessionInactivityTimeoutS: 10
+  pod:
+    tcp:
+      enabled: false
+      externalHost: localhost
+      externalPort: 1995
+      port: 1995
+      certFile: ""
+      keyFile: ""
