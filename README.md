@@ -6,31 +6,11 @@
 
 ## Run AI Workloads at Scale
 
-<p align="center">
-  </a>
-    <a href="https://colab.research.google.com/drive/1jSDyYY7FY3Y3jJlCzkmHlH8vTyF-TEmB?usp=sharing">
-    <img alt="Colab" src="https://colab.research.google.com/assets/colab-badge.svg">
-  </a>
-  <a href="https://github.com/beam-cloud/beta9/stargazers">
-    <img alt="⭐ Star the Repo" src="https://img.shields.io/github/stars/beam-cloud/beta9">
-  </a>
-  <a href="https://docs.beam.cloud">
-    <img alt="Documentation" src="https://img.shields.io/badge/docs-quickstart-purple">
-  </a>
-  <a href="https://join.slack.com/t/beam-cloud/shared_invite/zt-39hbkt8ty-CTVv4NsgLoYArjWaVkwcFw">
-    <img alt="Join Slack" src="https://img.shields.io/badge/Beam-Join%20Slack-orange?logo=slack">
-  </a>
-    <a href="https://twitter.com/beam_cloud">
-    <img alt="Twitter" src="https://img.shields.io/twitter/follow/beam_cloud.svg?style=social&logo=twitter">
-  </a>
-    <a href="https://github.com/beam-cloud/beta9?tab=AGPL-3.0-1-ov-file">
-    <img alt="AGPL" src="https://img.shields.io/badge/License-AGPL-green">
-  </a>
-</p>
+
 
 </div>
 
-**[Beam](https://beam.cloud?utm_source=github_readme)** is a fast, open-source runtime for serverless AI workloads. It gives you a Pythonic interface to deploy and scale AI applications with zero infrastructure overhead.
+**[Beam])** is a fast, open-source runtime for serverless AI workloads. It gives you a Pythonic interface to deploy and scale AI applications with zero infrastructure overhead.
 
 ![Watch the demo](static/readme.gif)
 
@@ -125,15 +105,3 @@ if __name__ == "__main__":
 >
 > Beta9 is the open-source engine powering [Beam](https://beam.cloud), our fully-managed cloud platform. You can self-host Beta9 for free or choose managed cloud hosting through Beam.
 
-## 👋 Contributing
-
-We welcome contributions big or small. These are the most helpful things for us:
-
-- Submit a [feature request](https://github.com/beam-cloud/beta9/issues/new?assignees=&labels=&projects=&template=feature-request.md&title=) or [bug report](https://github.com/beam-cloud/beta9/issues/new?assignees=&labels=&projects=&template=bug-report.md&title=)
-- Open a PR with a new feature or improvement
-
-## ❤️ Thanks to Our Contributors
-
-<a href="https://github.com/beam-cloud/beta9/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=beam-cloud/beta9" />
-</a>
